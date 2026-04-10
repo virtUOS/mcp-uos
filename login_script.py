@@ -185,12 +185,21 @@ def perform_search(session, search_term):
     Returns:
         The search results page content
     """
-    search_url = f"{BASE_URL}/suche?tx_solr%5Bfilter%5D%5B0%5D=type%3Apages&tx_solr%5Bfilter%5D%5B1%5D=type%3Atx_solr_file&tx_solr%5Bq%5D={search_term}"
+    # Build search parameters as a dictionary
+    search_params = {
+        'tx_solr[filter][0]': 'type:pages',
+        'tx_solr[filter][1]': 'type:tx_solr_file',
+        'tx_solr[q]': search_term
+    }
+    
+    # Build the URL
+    search_url = f"{BASE_URL}/suche"
     
     print(f"Performing search for: {search_term}")
     print(f"Search URL: {search_url}")
+    print(f"Search parameters: {search_params}")
     
-    response = session.get(search_url)
+    response = session.get(search_url, params=search_params)
     response.raise_for_status()
     
     return response.text
