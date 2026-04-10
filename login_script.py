@@ -2,9 +2,9 @@
 """
 Login Form Extractor and Submitter
 
-This script extracts the login form from an HTML file using BeautifulSoup,
+This script extracts the login form from a webpage using BeautifulSoup,
 submits the form with user credentials using the requests library,
-and prints the session cookie to stdout.
+retrieves the session cookie, and then uses it to perform a search query.
 """
 
 from bs4 import BeautifulSoup
@@ -14,8 +14,8 @@ import requests
 USERNAME = "<user>"
 PASSWORD = "<pass>"
 
-# HTML file path
-HTML_FILE = "loginlogout.html"
+# Search configuration
+SEARCH_TERM = "Dienstreise"
 
 # Base URL for the form action
 BASE_URL = "https://www.uni-osnabrueck.de"
@@ -162,6 +162,38 @@ def main():
     elif response.status_code in [301, 302, 303, 307, 308]:
         print(f"\nRedirect to: {response.headers.get('Location', 'N/A')}")
         print("Note: The session cookie may be set after following redirects.")
+    
+    # Perform search using the authenticated session
+    print()
+    search_html = perform_search(session, SEARCH_TERM)
+    
+    # Print search results
+    print("\n" + "="*60)
+    print("SEARCH RESULTS HTML:")
+    print("="*60)
+    print(search_html)
+
+
+def perform_search(session, search_term):
+    """
+    Perform a search using the authenticated session.
+    
+    Args:
+        session: The requests Session object with authentication cookies
+        search_term: The search term (URL encoded)
+        
+    Returns:
+        The search results page content
+    """
+    search_url = f"{BASE_URL}/suche?tx_solr%5Bfilter%5D%5B0%5D=type%3Apages&tx_solr%5Bfilter%5D%5B1%5D=type%3Atx_solr_file&tx_solr%5Bq%5D={search_term}"
+    
+    print(f"Performing search for: {search_term}")
+    print(f"Search URL: {search_url}")
+    
+    response = session.get(search_url)
+    response.raise_for_status()
+    
+    return response.text
 
 
 if __name__ == "__main__":
