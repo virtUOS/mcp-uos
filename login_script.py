@@ -105,11 +105,27 @@ def submit_login(form_data, username, password, action_url):
     return response, session
 
 
+def fetch_html(url):
+    """
+    Fetch HTML content from a URL.
+    
+    Args:
+        url: The URL to fetch
+        
+    Returns:
+        The HTML content as a string
+    """
+    session = requests.Session()
+    response = session.get(url)
+    response.raise_for_status()
+    return response.text
+
+
 def main():
     """Main function to extract form, submit login, and print session cookie."""
-    # Read HTML file
-    with open(HTML_FILE, 'r', encoding='utf-8') as f:
-        html_content = f.read()
+    # Fetch HTML from URL
+    print(f"Fetching login page from: {BASE_URL}/loginlogout")
+    html_content = fetch_html(f"{BASE_URL}/loginlogout")
     
     # Extract form fields
     form_data, action, method = extract_form_fields(html_content)
