@@ -167,11 +167,26 @@ def main():
     print()
     search_html = perform_search(session, SEARCH_TERM)
     
-    # Print search results
+    # Extract and print search results
     print("\n" + "="*60)
-    print("SEARCH RESULTS HTML:")
+    print(f"SEARCH RESULTS for: {SEARCH_TERM}")
     print("="*60)
-    print(search_html)
+    
+    search_results = extract_search_results(search_html)
+    print(f"Found {len(search_results)} results:\n")
+    
+    for i, result in enumerate(search_results, 1):
+        print(f"{i}. {result['title']}")
+        print(f"   URL: {result['url']}")
+        if result['breadcrumbs']:
+            print(f"   Breadcrumbs: {' > '.join(result['breadcrumbs'])}")
+        else:
+            print(f"   Breadcrumbs: (none)")
+        if result['teaser']:
+            print(f"   Teaser: {result['teaser'][:100]}..." if len(result['teaser']) > 100 else f"   Teaser: {result['teaser']}")
+        else:
+            print(f"   Teaser: (none)")
+        print()
 
 
 def perform_search(session, search_term):
@@ -203,6 +218,58 @@ def perform_search(session, search_term):
     response.raise_for_status()
     
     return response.text
+
+
+def extract_search_results(html_content):
+    """
+    Extract search results from HTML response.
+    
+    Args:
+        html_content: The HTML content as a string
+        
+    Returns:
+        A list of dictionaries, each containing:
+        - title: The result title
+        - url: The result URL
+        - breadcrumbs: List of breadcrumb items (may be empty)
+        - teaser: The teaser text (may be empty string)
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    results = []
+    
+    # Find all search results
+    for result_div in soup.find_all('div', class_='search-result'):
+        result = {
+            'title': '',
+            'url': '',
+            'breadcrumbs': [],
+            'teaser': ''
+        }
+        
+        # Extract title and URL from results-topic
+        topic = result_div.find('div', class_='results-topic')
+        if topic:
+            link = topic.find('a')
+            if link:
+                result['title'] = link.get_text(strip=True)
+                result['url'] = link.get('href', '')
+        
+        # Extract breadcrumbs
+        breadcrumb_nav = result_div.find('nav', class_='results-breadcrumbs') or result_div.find('div', class_='results-breadcrumbs')
+        if breadcrumb_nav:
+            for item in breadcrumb_nav.find_all('li', class_='breadcrumb-item'):
+                breadcrumb_text = item.get_text(strip=True)
+                if breadcrumb_text:
+                    result['breadcrumbs'].append(breadcrumb_text)
+        
+        # Extract teaser
+        teaser_div = result_div.find('div', class_='results-teaser')
+        if teaser_div:
+            result['teaser'] = teaser_div.get_text(strip=True)
+        
+        results.append(result)
+    
+    return results
 
 
 if __name__ == "__main__":
