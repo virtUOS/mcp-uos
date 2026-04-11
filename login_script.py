@@ -266,7 +266,7 @@ def extract_search_results(html_content):
         # Extract teaser
         teaser_div = result_div.find('div', class_='results-teaser')
         if teaser_div:
-            result['teaser'] = teaser_div.get_text(strip=True)
+            result['teaser'] = teaser_div.get_text(strip=False).strip()
 
         results.append(result)
 
