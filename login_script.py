@@ -188,6 +188,28 @@ def main():
             print(f"   Teaser: (none)")
         print()
 
+    # Fetch and print the first search result's content
+    if search_results:
+        print("\n" + "="*60)
+        print("FETCHING FIRST RESULT:")
+        print("="*60)
+
+        first_result = search_results[0]
+        print(f"Title: {first_result['title']}")
+        print(f"URL: {first_result['url']}")
+        print()
+
+        # Fetch the page content
+        page_html = fetch_page_content(session, first_result['url'])
+
+        # Extract and print the main content as markdown
+        markdown_content = extract_main_content_as_markdown(page_html)
+
+        print("="*60)
+        print("PAGE CONTENT (Markdown):")
+        print("="*60)
+        print(markdown_content)
+
 
 def perform_search(session, search_term):
     """
@@ -271,6 +293,55 @@ def extract_search_results(html_content):
         results.append(result)
 
     return results
+
+
+def fetch_page_content(session, url):
+    """
+    Fetch page content from a URL using the authenticated session.
+
+    Args:
+        session: The requests Session object with authentication cookies
+        url: The URL to fetch (can be relative or absolute)
+
+    Returns:
+        The page content as a string
+    """
+    # Build full URL
+    if url.startswith('http'):
+        full_url = url
+    else:
+        full_url = BASE_URL + url
+
+    response = session.get(full_url)
+    response.raise_for_status()
+
+    return response.text
+
+
+def extract_main_content_as_markdown(html_content):
+    """
+    Extract main content from HTML and convert to markdown.
+
+    Args:
+        html_content: The HTML content as a string
+
+    Returns:
+        The main content as a markdown string
+    """
+    from markdownify import markdownify as md
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Find the main content element
+    main_content = soup.find('main', id='main-content')
+
+    if not main_content:
+        return "No main content found."
+
+    # Convert to markdown
+    markdown_content = md(str(main_content))
+
+    return markdown_content
 
 
 if __name__ == "__main__":
