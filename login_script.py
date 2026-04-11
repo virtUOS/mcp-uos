@@ -204,6 +204,7 @@ def perform_search(session, search_term):
     search_params = {
         'tx_solr[filter][0]': 'type:pages',
         'tx_solr[filter][1]': 'type:tx_solr_file',
+        'tx_solr[resultsPerPage]': 50,
         'tx_solr[q]': search_term
     }
     
