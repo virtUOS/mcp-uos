@@ -7,12 +7,17 @@ submits the form with user credentials using the requests library,
 retrieves the session cookie, and then uses it to perform a search query.
 """
 
-from bs4 import BeautifulSoup
+import os
 import requests
 
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+
 # Configuration - Set your credentials here
-USERNAME = "<user>"
-PASSWORD = "<pass>"
+USERNAME = os.getenv("UOS_MCP_USERNAME")
+PASSWORD = os.getenv("UOS_MCP_PASSWORD")
 
 # Search configuration
 SEARCH_TERM = "Dienstreise"
