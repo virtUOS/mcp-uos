@@ -104,8 +104,7 @@ def fetch_html(url):
     Returns:
         The HTML content as a string
     """
-    session = requests.Session()
-    response = session.get(url)
+    response = requests.get(url)
     response.raise_for_status()
     return response.text
 
