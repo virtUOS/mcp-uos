@@ -34,31 +34,19 @@ def extract_form_fields(html_content):
         html_content: The HTML content as a string
 
     Returns:
-        A tuple of (fields_dict, action_url, method)
+        A tuple of (fields_dict, action_url)
 
     Raises:
         ValueError: If no login form is found in the HTML
     """
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # Find the login form - it has class="form" and target="_top"
-    # or contains the username/password fields
-    form = None
-
-    # First, try to find by class and target attributes (login form specific)
     for f in soup.find_all('form'):
-        if f.get('class') == ['form'] and f.get('target') == '_top':
+        has_user = f.find('input', {'name': 'user'})
+        has_pass = f.find('input', {'name': 'pass'})
+        if has_user and has_pass:
             form = f
             break
-
-    # Fallback: find by checking for 'user' or 'pass' input fields
-    if not form:
-        for f in soup.find_all('form'):
-            has_user = f.find('input', {'name': 'user'}) or f.find('input', {'name': 'username'})
-            has_pass = f.find('input', {'name': 'pass'}) or f.find('input', {'name': 'password'})
-            if has_user and has_pass:
-                form = f
-                break
 
     if not form:
         raise ValueError("No login form found in HTML")
@@ -70,13 +58,9 @@ def extract_form_fields(html_content):
         if name:
             fields[name] = value
 
-    action = form.get('action', '') or ''
-    method = form.get('method', 'get') or 'get'
-    if isinstance(method, list):
-        method = ' '.join(method)
-    method = method.lower()
+    action = form.get('action', '')
 
-    return fields, action, method
+    return fields, action
 
 
 def submit_login(form_data, username, password, action_url):
@@ -133,11 +117,10 @@ def main():
     html_content = fetch_html(f"{BASE_URL}/loginlogout")
 
     # Extract form fields
-    form_data, action, method = extract_form_fields(html_content)
+    form_data, action = extract_form_fields(html_content)
 
     print(f"Extracted {len(form_data)} form fields")
     print(f"Form action: {action}")
-    print(f"Form method: {method}")
     print()
 
     # Submit login
