@@ -106,7 +106,7 @@ class UOSWebsiteClient:
 
         return fields, action
 
-    def perform_search(self, search_term, results_per_page=50):
+    def _perform_search(self, search_term, results_per_page=50):
         """
         Perform a search using the authenticated session.
 
@@ -131,7 +131,7 @@ class UOSWebsiteClient:
 
         return response.text
 
-    def extract_search_results(self, html_content):
+    def _extract_search_results(self, html_content):
         """
         Extract search results from HTML response.
 
@@ -178,7 +178,28 @@ class UOSWebsiteClient:
 
         return results
 
-    def fetch_page_content(self, url):
+    def search(self, search_term, results_per_page=50):
+        """
+        Perform a search and return parsed results.
+
+        This is a convenience method that combines _perform_search and
+        _extract_search_results into a single call.
+
+        Args:
+            search_term: The search term.
+            results_per_page: Number of results per page. Defaults to 50.
+
+        Returns:
+            A list of dictionaries, each containing:
+            - title: The result title
+            - url: The result URL
+            - breadcrumbs: List of breadcrumb items (may be empty)
+            - teaser: The teaser text (may be empty string)
+        """
+        html_content = self._perform_search(search_term, results_per_page)
+        return self._extract_search_results(html_content)
+
+    def _fetch_page_content(self, url):
         """
         Fetch page content from a URL using the authenticated session.
 
@@ -198,7 +219,7 @@ class UOSWebsiteClient:
 
         return response.text
 
-    def extract_main_content_as_markdown(self, html_content):
+    def _extract_main_content_as_markdown(self, html_content):
         """
         Extract main content from HTML and convert to markdown.
 
@@ -218,3 +239,19 @@ class UOSWebsiteClient:
         markdown_content = md(str(main_content))
 
         return markdown_content
+
+    def fetch(self, url):
+        """
+        Fetch page content and return it as markdown.
+
+        This is a convenience method that combines _fetch_page_content and
+        _extract_main_content_as_markdown into a single call.
+
+        Args:
+            url: The URL to fetch (can be relative or absolute).
+
+        Returns:
+            The main content as a markdown string.
+        """
+        html_content = self._fetch_page_content(url)
+        return self._extract_main_content_as_markdown(html_content)

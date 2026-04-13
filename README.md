@@ -28,18 +28,16 @@ client = UOSWebsiteClient(username="your_username", password="your_password")
 # Perform login
 client.login()
 
-# Perform a search
-search_html = client.perform_search("Dienstreise")
-results = client.extract_search_results(search_html)
+# Perform a search (returns parsed results directly)
+results = client.search("Dienstreise")
 
 # Display results
 for result in results:
     print(f"Title: {result['title']}")
     print(f"URL: {result['url']}")
 
-# Fetch page content
-page_html = client.fetch_page_content(results[0]['url'])
-markdown = client.extract_main_content_as_markdown(page_html)
+# Fetch page content as markdown (single call)
+markdown = client.fetch(results[0]['url'])
 print(markdown)
 ```
 

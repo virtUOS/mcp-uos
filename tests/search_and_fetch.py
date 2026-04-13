@@ -43,10 +43,7 @@ def main():
     # Perform search
     search_term = "Dienstreise"
     print(f"Performing search for: {search_term}")
-    search_html = client.perform_search(search_term)
-
-    # Extract and print search results
-    search_results = client.extract_search_results(search_html)
+    search_results = client.search(search_term)
     print(f"Found {len(search_results)} results:\n")
 
     for i, result in enumerate(search_results, 1):
@@ -75,11 +72,8 @@ def main():
         print(f"URL: {first_result['url']}")
         print()
 
-        # Fetch the page content
-        page_html = client.fetch_page_content(first_result['url'])
-
-        # Extract and print the main content as markdown
-        markdown_content = client.extract_main_content_as_markdown(page_html)
+        # Fetch the page content as markdown
+        markdown_content = client.fetch(first_result['url'])
 
         print("=" * 60)
         print("PAGE CONTENT (Markdown):")
