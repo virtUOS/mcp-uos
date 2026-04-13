@@ -6,6 +6,7 @@ and fetching content from the university's website.
 """
 
 import os
+import time
 import requests
 
 from bs4 import BeautifulSoup
@@ -36,6 +37,7 @@ class UOSWebsiteClient:
         self.base_url = base_url or self.BASE_URL
         self.session = requests.Session()
         self._logged_in = False
+        self._last_login = 0
 
     def login(self):
         """
@@ -67,7 +69,17 @@ class UOSWebsiteClient:
         response.raise_for_status()
 
         self._logged_in = True
+        self._last_login = time.time()
         return True
+
+    def _ensure_logged_in(self):
+        """
+        Check if the session is valid and login if necessary.
+
+        A session is considered valid if the last login was within the last hour.
+        """
+        if time.time() - self._last_login > 3600:
+            self.login()
 
     def _extract_form_fields(self, html_content):
         """
@@ -196,6 +208,7 @@ class UOSWebsiteClient:
             - breadcrumbs: List of breadcrumb items (may be empty)
             - teaser: The teaser text (may be empty string)
         """
+        self._ensure_logged_in()
         html_content = self._perform_search(search_term, results_per_page)
         return self._extract_search_results(html_content)
 
@@ -253,5 +266,6 @@ class UOSWebsiteClient:
         Returns:
             The main content as a markdown string.
         """
+        self._ensure_logged_in()
         html_content = self._fetch_page_content(url)
         return self._extract_main_content_as_markdown(html_content)

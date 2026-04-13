@@ -26,6 +26,7 @@ from mcpuos import UOSWebsiteClient
 client = UOSWebsiteClient(username="your_username", password="your_password")
 
 # Perform login
+# This is optional since search(…) and fetch(…) will ensure an active login.
 client.login()
 
 # Perform a search (returns parsed results directly)

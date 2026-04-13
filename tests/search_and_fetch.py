@@ -35,11 +35,6 @@ def main():
     # Initialize the client
     client = UOSWebsiteClient(username=username, password=password)
 
-    # Perform login
-    print("Logging in...")
-    client.login()
-    print("Login successful!\n")
-
     # Perform search
     search_term = "Dienstreise"
     print(f"Performing search for: {search_term}")
