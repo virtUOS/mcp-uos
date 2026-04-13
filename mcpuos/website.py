@@ -124,7 +124,7 @@ class UOSWebsiteClient:
 
         Args:
             search_term: The search term.
-            results_per_page: Number of results per page. Defaults to 50.
+            results_per_page: Number of results per page. Can be 10, 25 or 50. Defaults to 50.
 
         Returns:
             The search results page content as a string.
@@ -199,7 +199,7 @@ class UOSWebsiteClient:
 
         Args:
             search_term: The search term.
-            results_per_page: Number of results per page. Defaults to 50.
+            results_per_page: Number of results per page. Can be 10, 25 or 50. Defaults to 50.
 
         Returns:
             A list of dictionaries, each containing:
@@ -209,6 +209,14 @@ class UOSWebsiteClient:
             - teaser: The teaser text (may be empty string)
         """
         self._ensure_logged_in()
+
+        # Match the next best available parameter
+        # Everything else will fall back to 10 results.
+        if results_per_page > 50:
+            results_per_page = 50
+        elif results_per_page > 25:
+            results_per_page = 25
+
         html_content = self._perform_search(search_term, results_per_page)
         return self._extract_search_results(html_content)
 
