@@ -101,15 +101,6 @@ The server exposes two tools:
 | `uos_search` | Search the University of Osnabrück website for content |
 | `uos_fetch` | Fetch page content from a URL and return it as markdown |
 
-### MCP Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `UOS_MCP_SERVER_HOST` | Host for HTTP transport | `127.0.0.1` |
-| `UOS_MCP_SERVER_PORT` | Port for HTTP transport | (required for HTTP mode) |
-| `UOS_MCP_USERNAME` | Your university username | `None` (required) |
-| `UOS_MCP_PASSWORD` | Your university password | `None` (required) |
-
 ## Running the Test Script
 
 To run the test script that demonstrates all functionality:
@@ -130,10 +121,12 @@ The package can be configured using environment variables. You can either set th
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `UOS_MCP_USERNAME` | Your university username | `None` (required) |
-| `UOS_MCP_PASSWORD` | Your university password | `None` (required) |
+| Variable              | Description             | Default
+|-----------------------|-------------------------|---------------------------
+| `UOS_MCP_USERNAME`    | Username of UOS account | `None` (required)
+| `UOS_MCP_PASSWORD`    | Password of UOS account | `None` (required)
+| `UOS_MCP_SERVER_HOST` | Host for HTTP transport | `127.0.0.1` |
+| `UOS_MCP_SERVER_PORT` | Port for HTTP transport | `None` (enables HTTP mode)
 
 ### Using a .env File
 
