@@ -1,43 +1,112 @@
-# Login Script
+# mcpuos Package
+
+A Python package for interacting with the University of Osnabrück website.
 
 ## Overview
 
-This script automates the login process to **Osnabrück University**'s website and performs a search query using authenticated session cookies. It extracts the login form, submits credentials, and then uses the resulting session to search the university's website and display results in a readable format.
+The `mcpuos` package provides functionality for:
+- Logging in to the University of Osnabrück website
+- Performing authenticated searches
+- Fetching and converting page content to markdown
 
-## Functionality
+## Installation
 
-1. Fetches the login page from `https://www.uni-osnabrueck.de/loginlogout`
-2. Extracts the login form using BeautifulSoup
-3. Submits login credentials via POST to obtain a session cookie
-4. Performs a search query using the authenticated session
-5. Displays search results with titles, URLs, breadcrumbs, and teasers
-6. Fetches and converts the first search result's content to markdown
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
+### Basic Example
+
+```python
+from mcpuos import UOSWebsiteClient
+
+# Initialize the client with your credentials
+client = UOSWebsiteClient(username="your_username", password="your_password")
+
+# Perform login
+client.login()
+
+# Perform a search
+search_html = client.perform_search("Dienstreise")
+results = client.extract_search_results(search_html)
+
+# Display results
+for result in results:
+    print(f"Title: {result['title']}")
+    print(f"URL: {result['url']}")
+
+# Fetch page content
+page_html = client.fetch_page_content(results[0]['url'])
+markdown = client.extract_main_content_as_markdown(page_html)
+print(markdown)
+```
+
+### Using Environment Variables
+
+You can also configure the client using environment variables:
+
+```python
+import os
+from mcpuos import UOSWebsiteClient
+
+# Set environment variables
+os.environ["UOS_MCP_USERNAME"] = "your_username"
+os.environ["UOS_MCP_PASSWORD"] = "your_password"
+
+# Initialize without credentials (reads from environment)
+client = UOSWebsiteClient()
+client.login()
+```
+
+## Running the Test Script
+
+To run the test script that demonstrates all functionality:
+
 ```bash
-python3 login_script.py
+python tests/search_and_fetch.py
+```
+
+Or using Python module syntax:
+
+```bash
+python -m tests.search_and_fetch
 ```
 
 ## Configuration
 
-The script can be configured using environment variables. You can either set them directly in your shell or use a `.env` file.
+The package can be configured using environment variables. You can either set them directly in your shell or use a `.env` file.
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `UOS_MCP_USERNAME` | Your university username | `"user"` |
-| `UOS_MCP_PASSWORD` | Your university password | `"secret"` |
+| `UOS_MCP_USERNAME` | Your university username | `None` (required) |
+| `UOS_MCP_PASSWORD` | Your university password | `None` (required) |
 
 ### Using a .env File
 
-Create a `.env` file in the project directory with your credentials.
-See [`.env.sample`](.env.sample) for a template.
+Create a `.env` file in the project directory with your credentials. See [`.env.sample`](.env.sample) for a template.
 
 ```bash
 UOS_MCP_USERNAME="your_username"
 UOS_MCP_PASSWORD="your_password"
+```
+
+## Package Structure
+
+```
+mcp-uos/
+├── mcpuos/              # Package directory
+│   ├── __init__.py     # Package initializer
+│   └── website.py      # Core functionality
+├── tests/              # Test scripts (outside package)
+│   └── search_and_fetch.py
+├── .env.sample         # Environment variable template
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
 ## Requirements
