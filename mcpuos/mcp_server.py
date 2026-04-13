@@ -5,8 +5,6 @@ This module provides an MCP server that exposes tools for searching and
 fetching content from the University of Osnabrück website.
 """
 
-import os
-
 from fastmcp import FastMCP
 
 from mcpuos import UOSWebsiteClient
@@ -71,12 +69,3 @@ def uos_fetch(url: str) -> str:
         The main content of the page as a markdown string.
     """
     return _client.fetch(url)
-
-
-if __name__ == "__main__":
-    port = os.getenv("UOS_MCP_SERVER_PORT")
-    host = os.getenv("UOS_MCP_SERVER_HOST", "127.0.0.1")
-    if port:
-        mcp.run(transport="http", host=host, port=int(port))
-    else:
-        mcp.run()
