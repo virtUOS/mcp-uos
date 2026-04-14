@@ -10,7 +10,6 @@ This script demonstrates how to use the UOSWebsiteClient class to:
 
 Usage:
     python -m tests.search_and_fetch
-    python tests/search_and_fetch.py
 """
 
 import os
