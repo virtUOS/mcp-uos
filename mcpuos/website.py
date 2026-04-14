@@ -228,17 +228,17 @@ class UOSWebsiteClient:
         Fetch page content from a URL using the authenticated session.
 
         Args:
-            url: The URL to fetch (can be relative or absolute).
+            url: The URL to fetch (can be an abolut path or a URL)
 
         Returns:
             The page content as a string.
         """
-        if url.startswith('http'):
-            full_url = url
-        else:
-            full_url = self.base_url + url
+        if url.startswith('/'):
+            url = self.base_url + url
+        elif not url.startswith('http://') and not url.startswith('https://'):
+            raise ValueError(f"URL must be absolute path or URL: {url}")
 
-        response = self.session.get(full_url)
+        response = self.session.get(url)
         response.raise_for_status()
 
         return response.text
