@@ -8,7 +8,9 @@ and fetching content from the university's website.
 import os
 import time
 import requests
+import tempfile
 
+from all2md import to_markdown
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 
@@ -231,7 +233,9 @@ class UOSWebsiteClient:
             url: The URL to fetch (can be an abolut path or a URL)
 
         Returns:
-            The page content as a string.
+            A tuple of (content, content_type, is_binary).
+            - content: The page content as string (for HTML) or bytes (for PDF)
+            - content_type: The content-type header value
         """
         if url.startswith('/'):
             url = self.base_url + url
@@ -241,7 +245,13 @@ class UOSWebsiteClient:
         response = self.session.get(url)
         response.raise_for_status()
 
-        return response.text
+        content_type = response.headers.get('content-type', '')
+        is_text = 'text/' in content_type
+
+        # Use response.content for binary files (PDF), response.text for text files (HTML)
+        content = response.text if is_text else response.content
+
+        return content, content_type
 
     def _extract_main_content_as_markdown(self, html_content):
         """
@@ -264,6 +274,21 @@ class UOSWebsiteClient:
 
         return markdown_content
 
+    def _convert_pdf_to_markdown(self, pdf_content):
+        """
+        Convert PDF content to markdown.
+
+        Args:
+            pdf_content: The PDF content as bytes.
+
+        Returns:
+            The content as a markdown string.
+        """
+        with tempfile.NamedTemporaryFile(suffix='.pdf') as tmp:
+            tmp.write(pdf_content)
+            tmp_path = tmp.name
+            return to_markdown(tmp_path)
+
     def fetch(self, url):
         """
         Fetch page content and return it as markdown.
@@ -276,7 +301,16 @@ class UOSWebsiteClient:
 
         Returns:
             The main content as a markdown string.
+
+        Raises:
+            ValueError: If the content type is not supported.
         """
         self._ensure_logged_in()
-        html_content = self._fetch_page_content(url)
-        return self._extract_main_content_as_markdown(html_content)
+        content, content_type  = self._fetch_page_content(url)
+
+        if 'text/html' in content_type:
+            return self._extract_main_content_as_markdown(content)
+        elif 'application/pdf' in content_type:
+            return self._convert_pdf_to_markdown(content)
+        else:
+            raise ValueError(f"Unsupported content type: {content_type}")

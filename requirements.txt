@@ -3,3 +3,4 @@ requests
 markdownify
 python-dotenv
 fastmcp
+all2md[pdf]
