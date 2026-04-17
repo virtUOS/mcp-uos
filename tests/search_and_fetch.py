@@ -38,17 +38,17 @@ def main():
     search_term = "Dienstreise"
     print(f"Performing search for: {search_term}")
     search_results = client.search(search_term)
-    print(f"Found {len(search_results)} results:\n")
+    print(f"Found {search_results.total_count} results:\n")
 
-    for i, result in enumerate(search_results, 1):
-        print(f"{i}. {result['title']}")
-        print(f"   URL: {result['url']}")
-        if result['breadcrumbs']:
-            print(f"   Breadcrumbs: {' > '.join(result['breadcrumbs'])}")
+    for i, result in enumerate(search_results.results, 1):
+        print(f"{i}. {result.title}")
+        print(f"   URL: {result.url}")
+        if result.breadcrumbs:
+            print(f"   Breadcrumbs: {' > '.join(result.breadcrumbs)}")
         else:
             print(f"   Breadcrumbs: (none)")
-        if result['teaser']:
-            teaser = result['teaser']
+        if result.teaser:
+            teaser = result.teaser
             if len(teaser) > 100:
                 teaser = teaser[:100] + "..."
             print(f"   Teaser: {teaser}")
@@ -58,16 +58,16 @@ def main():
 
     # Fetch and print the first search result's content
     if search_results:
-        first_result = search_results[0]
+        first_result = search_results.results[0]
         print("=" * 60)
         print("FETCHING FIRST RESULT:")
         print("=" * 60)
-        print(f"Title: {first_result['title']}")
-        print(f"URL: {first_result['url']}")
+        print(f"Title: {first_result.title}")
+        print(f"URL: {first_result.url}")
         print()
 
         # Fetch the page content as markdown
-        markdown_content = client.fetch(first_result['url'])
+        markdown_content = client.fetch(first_result.url)
 
         print("=" * 60)
         print("PAGE CONTENT (Markdown):")

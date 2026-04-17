@@ -13,6 +13,7 @@ import tempfile
 from all2md import to_markdown
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
+from urllib.parse import urljoin
 
 from mcpuos.models import SearchResult, SearchResults
 
@@ -171,9 +172,7 @@ class UOSWebsiteClient:
                 link = topic.find('a')
                 if link:
                     title = link.get_text(strip=True)
-                    url = str(link.get('href', ''))
-                    if url.startswith('/'):
-                        url = self.base_url + url
+                    url = urljoin(self.base_url, str(link.get('href', '')))
 
             breadcrumb_nav = result_div.find('nav', class_='results-breadcrumbs') or result_div.find('div', class_='results-breadcrumbs')
             if breadcrumb_nav:
