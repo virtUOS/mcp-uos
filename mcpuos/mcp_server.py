@@ -5,6 +5,9 @@ This module provides an MCP server that exposes tools for searching and
 fetching content from the University of Osnabrück website.
 """
 
+from typing import Annotated
+from pydantic import Field
+
 from fastmcp import FastMCP
 
 from mcpuos import UOSWebsiteClient
@@ -32,11 +35,11 @@ _client = UOSWebsiteClient()
 
 @mcp.tool(
     name="uos_search",
-    description="Search the University of Osnabrück website for content.",
+    description="Search the University of Osnabrück (UOS) website for content.",
 )
 def uos_search(
-    search_term: str,
-    results_per_page: int = 50,
+    search_term: Annotated[str, Field(description="The search term to look for on the University of Osnabrück website.")],
+    results_per_page: Annotated[int, Field(description="Number of results to return per page. Valid values are 10, 25, or 50. Defaults to 50.", ge=1, le=50)] = 50,
 ) -> SearchResults:
     """
     Search the University of Osnabrück website for content.
