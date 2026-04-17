@@ -14,6 +14,8 @@ from all2md import to_markdown
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 
+from mcpuos.models import SearchResult, SearchResults
+
 
 class UOSWebsiteClient:
     """
@@ -145,7 +147,7 @@ class UOSWebsiteClient:
 
         return response.text
 
-    def _extract_search_results(self, html_content):
+    def _extract_search_results(self, html_content) -> list[SearchResult]:
         """
         Extract search results from HTML response.
 
@@ -153,49 +155,49 @@ class UOSWebsiteClient:
             html_content: The HTML content as a string.
 
         Returns:
-            A list of dictionaries, each containing:
-            - title: The result title
-            - url: The result URL
-            - breadcrumbs: List of breadcrumb items (may be empty)
-            - teaser: The teaser text (may be empty string)
+            A list of SearchResult objects.
         """
         soup = BeautifulSoup(html_content, 'html.parser')
         results = []
 
         for result_div in soup.find_all('div', class_='search-result'):
-            result = {
-                'title': '',
-                'url': '',
-                'breadcrumbs': [],
-                'teaser': ''
-            }
+            title = ''
+            url = ''
+            breadcrumbs = []
+            teaser = ''
 
             topic = result_div.find('div', class_='results-topic')
             if topic:
                 link = topic.find('a')
                 if link:
-                    result['title'] = link.get_text(strip=True)
-                    url = link.get('href', '')
+                    title = link.get_text(strip=True)
+                    url = str(link.get('href', ''))
                     if url.startswith('/'):
                         url = self.base_url + url
-                    result['url'] = url
 
             breadcrumb_nav = result_div.find('nav', class_='results-breadcrumbs') or result_div.find('div', class_='results-breadcrumbs')
             if breadcrumb_nav:
                 for item in breadcrumb_nav.find_all('li', class_='breadcrumb-item'):
                     breadcrumb_text = item.get_text(strip=True)
                     if breadcrumb_text:
-                        result['breadcrumbs'].append(breadcrumb_text)
+                        breadcrumbs.append(breadcrumb_text)
 
             teaser_div = result_div.find('div', class_='results-teaser')
             if teaser_div:
-                result['teaser'] = teaser_div.get_text(strip=False).strip()
+                teaser = teaser_div.get_text(strip=False).strip()
 
-            results.append(result)
+            results.append(
+                SearchResult(
+                    title=title,
+                    url=url,
+                    breadcrumbs=breadcrumbs,
+                    teaser=teaser
+                )
+            )
 
         return results
 
-    def search(self, search_term, results_per_page=50):
+    def search(self, search_term, results_per_page=50) -> SearchResults:
         """
         Perform a search and return parsed results.
 
@@ -207,11 +209,7 @@ class UOSWebsiteClient:
             results_per_page: Number of results per page. Can be 10, 25 or 50. Defaults to 50.
 
         Returns:
-            A list of dictionaries, each containing:
-            - title: The result title
-            - url: The result URL
-            - breadcrumbs: List of breadcrumb items (may be empty)
-            - teaser: The teaser text (may be empty string)
+            A SearchResults object containing the list of results and metadata.
         """
         self._ensure_logged_in()
 
@@ -223,7 +221,13 @@ class UOSWebsiteClient:
             results_per_page = 25
 
         html_content = self._perform_search(search_term, results_per_page)
-        return self._extract_search_results(html_content)
+        results = self._extract_search_results(html_content)
+
+        return SearchResults(
+            results=results,
+            query=search_term,
+            total_count=len(results)
+        )
 
     def _fetch_page_content(self, url):
         """

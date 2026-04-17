@@ -8,6 +8,7 @@ fetching content from the University of Osnabrück website.
 from fastmcp import FastMCP
 
 from mcpuos import UOSWebsiteClient
+from mcpuos.models import SearchResults
 
 
 # Create the FastMCP server instance
@@ -36,7 +37,7 @@ _client = UOSWebsiteClient()
 def uos_search(
     search_term: str,
     results_per_page: int = 50,
-) -> list[dict]:
+) -> SearchResults:
     """
     Search the University of Osnabrück website for content.
 
@@ -45,11 +46,10 @@ def uos_search(
         results_per_page: Number of results to return per page (default: 50).
 
     Returns:
-        A list of search results, each containing:
-        - title: The result title
-        - url: The result URL (can be passed to uos_fetch)
-        - breadcrumbs: List of breadcrumb items
-        - teaser: A short preview text
+        A SearchResults object containing:
+        - results: List of SearchResult objects with title, url, breadcrumbs, teaser
+        - query: The search query that was performed
+        - total_count: Total number of results found
     """
     return _client.search(search_term, results_per_page)
 
