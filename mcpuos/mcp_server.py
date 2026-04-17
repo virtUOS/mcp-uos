@@ -61,7 +61,9 @@ def uos_search(
     name="uos_fetch",
     description="Fetch page content from a URL and return it as markdown.",
 )
-def uos_fetch(url: str) -> str:
+def uos_fetch(
+    url: Annotated[str, Field(description="The URL to fetch (can be relative or absolute).")],
+) -> Annotated[str, Field(description="The main content of the page as a markdown string.")]:
     """
     Fetch page content from a URL and return it as markdown.
 
