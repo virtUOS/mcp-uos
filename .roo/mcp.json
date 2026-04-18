@@ -1,6 +1,6 @@
 {
 	"mcpServers": {
-		"uos": {
+		"uos-local": {
 			"command": "python",
 			"args": [
 				"-m",
