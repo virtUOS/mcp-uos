@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-uos"
-version = "1.1.0"
+version = "1.2.0"
 description = "An MCP server providing tools for querying information about Osnabrück University"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = "MIT"
