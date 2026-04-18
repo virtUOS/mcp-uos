@@ -13,7 +13,7 @@ import tempfile
 from all2md import to_markdown
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from mcpuos.models import SearchResult, SearchResults
 
@@ -272,6 +272,15 @@ class UOSWebsiteClient:
 
         if not main_content:
             return "No main content found."
+
+        # Make link absolute
+        # Replace with markdownify-internal functionality one #260 is merged:
+        # https://github.com/matthewwithanm/python-markdownify/pull/260
+        for link in main_content.find_all('a'):
+            href = link.get('href')
+            if not href or urlparse(str(href)).netloc:
+                continue
+            link['href'] = urljoin(self.base_url, str(href))
 
         markdown_content = md(str(main_content))
 
