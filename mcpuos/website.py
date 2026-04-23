@@ -28,6 +28,10 @@ class UOSWebsiteClient:
 
     BASE_URL = "https://www.uni-osnabrueck.de"
 
+    DEFAULT_HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+
     def __init__(self, username=None, password=None, base_url=None):
         """
         Initialize the UOSWebsiteClient.
@@ -41,6 +45,7 @@ class UOSWebsiteClient:
         self.password = password or os.getenv("UOS_MCP_PASSWORD")
         self.base_url = base_url or self.BASE_URL
         self.session = requests.Session()
+        self.session.headers.update(self.DEFAULT_HEADERS)
         self._logged_in = False
         self._last_login = 0
 
@@ -52,7 +57,7 @@ class UOSWebsiteClient:
             True if login was successful, False otherwise.
         """
         # Fetch login page
-        response = requests.get(f"{self.base_url}/loginlogout")
+        response = self.session.get(f"{self.base_url}/loginlogout")
         response.raise_for_status()
         html_content = response.text
 
