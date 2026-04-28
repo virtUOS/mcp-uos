@@ -19,10 +19,10 @@ mcp = FastMCP(
     name="UOS MCP Server",
     instructions="""
     This server provides tools for interacting with the University of Osnabrück website.
-    
+
     Use the uos_search tool to search for content on the university website.
     Use the uos_fetch tool to retrieve and convert page content to markdown.
-    
+
     The server requires UOS_MCP_USERNAME and UOS_MCP_PASSWORD environment variables
     to be set for authentication with the university website.
     """,

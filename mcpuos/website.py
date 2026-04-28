@@ -46,7 +46,6 @@ class UOSWebsiteClient:
         self.base_url = base_url or self.BASE_URL
         self.session = requests.Session()
         self.session.headers.update(self.DEFAULT_HEADERS)
-        self._logged_in = False
         self._last_login = 0
 
     def login(self):
@@ -57,7 +56,8 @@ class UOSWebsiteClient:
             True if login was successful, False otherwise.
         """
         # Fetch login page
-        response = self.session.get(f"{self.base_url}/loginlogout")
+        response = requests.get(f"{self.base_url}/loginlogout",
+                                headers=self.DEFAULT_HEADERS)
         response.raise_for_status()
         html_content = response.text
 
@@ -78,7 +78,6 @@ class UOSWebsiteClient:
         response = self.session.post(full_url, data=form_data)
         response.raise_for_status()
 
-        self._logged_in = True
         self._last_login = time.time()
         return True
 
@@ -86,9 +85,9 @@ class UOSWebsiteClient:
         """
         Check if the session is valid and login if necessary.
 
-        A session is considered valid if the last login was within the last hour.
+        A session is considered valid if the last login was within the last 23h.
         """
-        if time.time() - self._last_login > 3600:
+        if time.time() - self._last_login > (23 * 60 * 60):
             self.login()
 
     def _extract_form_fields(self, html_content):
