@@ -6,6 +6,7 @@ and fetching content from the university's website.
 """
 
 import os
+import re
 import time
 import requests
 import tempfile
@@ -237,10 +238,10 @@ class UOSWebsiteClient:
         Fetch page content from a URL using the authenticated session.
 
         Args:
-            url: The URL to fetch (can be an abolut path or a URL)
+            url: The URL to fetch (can be an absolute path or a URL)
 
         Returns:
-            A tuple of (content, content_type, is_binary).
+            A tuple of (content, content_type).
             - content: The page content as string (for HTML) or bytes (for PDF)
             - content_type: The content-type header value
         """
@@ -338,7 +339,6 @@ class UOSWebsiteClient:
         count_p = results_box.find("p") if results_box else None
         if count_p:
             # "Einträge 1 bis 25 von 42" or "Einträge 1 bis 3"
-            import re
             m = re.search(r"von\s+(\d+)", count_p.get_text())
             if m:
                 total_count = int(m.group(1))
@@ -391,7 +391,6 @@ class UOSWebsiteClient:
         # Phone is inside an <abbr> tag so we handle it separately.
         room = phone = fax = email = None
         if len(paragraphs) > 1:
-            import re
             p2 = paragraphs[1]
 
             # Phone: <abbr title="Telefon">Tel.</abbr>: <number>

@@ -34,12 +34,12 @@ client.login()
 results = client.search("Dienstreise")
 
 # Display results
-for result in results:
-    print(f"Title: {result['title']}")
-    print(f"URL: {result['url']}")
+for result in results.results:
+    print(f"Title: {result.title}")
+    print(f"URL: {result.url}")
 
 # Fetch page content as markdown (single call)
-markdown = client.fetch(results[0]['url'])
+markdown = client.fetch(results.results[0].url)
 print(markdown)
 ```
 
@@ -94,12 +94,14 @@ The server will be available at `http://127.0.0.1:8000/mcp`.
 
 ### MCP Tools
 
-The server exposes two tools:
+The server exposes four tools:
 
-| Tool | Description |
-|------|-------------|
-| `uos_search` | Search the University of Osnabrück website for content |
-| `uos_fetch` | Fetch page content from a URL and return it as markdown |
+| Tool                  | Description                                                       |
+|-----------------------|-------------------------------------------------------------------|
+| `uos_search`          | Search the Osnabrück University website for content               |
+| `uos_fetch`           | Fetch page content from a URL and return it as markdown           |
+| `uos_people_search`   | Search for people employed at the university by name              |
+| `uos_person_details`  | Fetch full contact details for a person using their details URL   |
 
 ## Running the Test Script
 

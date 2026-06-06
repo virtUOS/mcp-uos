@@ -90,6 +90,18 @@ def uos_fetch(
 def uos_people_search(
     query: Annotated[str, Field(description="Name or partial name to search for.")],
 ) -> PersonSearchResults:
+    """
+    Search for people employed at the Osnabrück University.
+
+    Args:
+        query: Name or partial name to search for.
+
+    Returns:
+        A PersonSearchResults object containing:
+        - results: List of PersonSearchResult objects with name and details_url
+        - query: The search query that was performed
+        - total_count: Total number of people found
+    """
     return _client.people_search(query)
 
 
@@ -108,4 +120,17 @@ def uos_person_details(
         )
     )],
 ) -> PersonDetails:
+    """
+    Fetch full contact details for a person at the Osnabrück University.
+
+    Args:
+        url: The details_url from a uos_people_search result.
+
+    Returns:
+        A PersonDetails object with all available contact fields including
+        name, department, address, room, phone, fax, email, and website.
+
+    Raises:
+        ValueError: If the URL does not point to the person details endpoint.
+    """
     return _client.people_details(url)
