@@ -1,5 +1,5 @@
 """
-mcpuos - A package for interacting with the University of Osnabrück website.
+mcpuos - A package for interacting with the Osnabrück University website.
 
 This package provides functionality for logging in, searching, and fetching
 content from the university's website, as well as running as an MCP server
