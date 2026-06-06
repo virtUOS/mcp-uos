@@ -35,5 +35,17 @@ dependencies = [
 Homepage = "https://github.com/virtuos/mcp-uos"
 Repository = "https://github.com/virtuos/mcp-uos"
 
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[tool.pytest.ini_options]
+addopts = "-v"
+filterwarnings = [
+  # fastmcp's StdioTransport.__del__ touches the event loop after it's closed
+  "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
 [project.scripts]
 mcp-uos = "mcpuos.__main__:main"
