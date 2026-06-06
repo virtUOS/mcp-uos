@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     name: Run pytest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
