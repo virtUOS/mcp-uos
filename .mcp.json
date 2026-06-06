@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "uos-mcp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcpuos"]
+    }
+  }
+}
