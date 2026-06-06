@@ -33,7 +33,7 @@ class UOSWebsiteClient:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
 
-    def __init__(self, username=None, password=None, base_url=None):
+    def __init__(self, username=None, password=None, base_url=None, skip_login=None):
         """
         Initialize the UOSWebsiteClient.
 
@@ -41,10 +41,15 @@ class UOSWebsiteClient:
             username: The username for login. If None, reads from UOS_MCP_USERNAME env var.
             password: The password for login. If None, reads from UOS_MCP_PASSWORD env var.
             base_url: The base URL for the website. Defaults to BASE_URL.
+            skip_login: If True, skip authentication entirely (public content only).
+                        If None, reads from UOS_MCP_SKIP_LOGIN env var. Defaults to False.
         """
         self.username = username or os.getenv("UOS_MCP_USERNAME")
         self.password = password or os.getenv("UOS_MCP_PASSWORD")
         self.base_url = base_url or self.BASE_URL
+        if skip_login is None:
+            skip_login = os.getenv("UOS_MCP_SKIP_LOGIN", "").lower() in ("1", "true", "yes")
+        self.skip_login = skip_login
         self.session = requests.Session()
         self.session.headers.update(self.DEFAULT_HEADERS)
         self._last_login = 0
@@ -87,7 +92,10 @@ class UOSWebsiteClient:
         Check if the session is valid and login if necessary.
 
         A session is considered valid if the last login was within the last 23h.
+        When skip_login is True, this method does nothing (public content only).
         """
+        if self.skip_login:
+            return
         if time.time() - self._last_login > (23 * 60 * 60):
             self.login()
 
