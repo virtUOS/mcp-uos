@@ -44,7 +44,8 @@ class _MCP:
 def requires_auth():
     import os
 
-    if not os.getenv("UOS_MCP_USERNAME") or not os.getenv("UOS_MCP_PASSWORD"):
+    skip_login = os.getenv("UOS_MCP_SKIP_LOGIN", "").lower() in ("1", "true", "yes")
+    if not skip_login and (not os.getenv("UOS_MCP_USERNAME") or not os.getenv("UOS_MCP_PASSWORD")):
         pytest.skip("UOS_MCP_USERNAME and UOS_MCP_PASSWORD env vars required")
 
 

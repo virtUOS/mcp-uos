@@ -26,6 +26,8 @@ mcp = FastMCP(
     The server requires UOS_MCP_USERNAME and UOS_MCP_PASSWORD environment variables
     to be set for authentication with the university website.
 
+    Set UOS_MCP_SKIP_LOGIN=true to skip authentication and access only public content.
+
     Use the uos_people_search tool to search for people employed at the university.
     Use the uos_person_details tool to retrieve full contact details for a person.
     """,
