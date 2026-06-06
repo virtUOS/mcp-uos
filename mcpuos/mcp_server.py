@@ -1,8 +1,8 @@
 """
-MCP Server for University of Osnabrück website interactions.
+MCP Server for Osnabrück University website interactions.
 
 This module provides an MCP server that exposes tools for searching and
-fetching content from the University of Osnabrück website.
+fetching content from the Osnabrück University website.
 """
 
 from typing import Annotated
@@ -11,7 +11,7 @@ from pydantic import Field
 from fastmcp import FastMCP
 
 from mcpuos import UOSWebsiteClient
-from mcpuos.models import SearchResults
+from mcpuos.models import SearchResults, PersonSearchResults, PersonDetails
 
 
 # Create the FastMCP server instance
@@ -25,6 +25,9 @@ mcp = FastMCP(
 
     The server requires UOS_MCP_USERNAME and UOS_MCP_PASSWORD environment variables
     to be set for authentication with the university website.
+
+    Use the uos_people_search tool to search for people employed at the university.
+    Use the uos_person_details tool to retrieve full contact details for a person.
     """,
 )
 
@@ -35,14 +38,14 @@ _client = UOSWebsiteClient()
 
 @mcp.tool(
     name="uos_search",
-    description="Search the University of Osnabrück (UOS) website for content.",
+    description="Search the Osnabrück University (UOS) website for content.",
 )
 def uos_search(
-    search_term: Annotated[str, Field(description="The search term to look for on the University of Osnabrück website.")],
+    search_term: Annotated[str, Field(description="The search term to look for on the Osnabrück University website.")],
     results_per_page: Annotated[int, Field(description="Number of results to return per page. Valid values are 10, 25, or 50. Defaults to 50.", ge=1, le=50)] = 50,
 ) -> SearchResults:
     """
-    Search the University of Osnabrück website for content.
+    Search the Osnabrück University website for content.
 
     Args:
         search_term: The search term to look for.
@@ -74,3 +77,35 @@ def uos_fetch(
         The main content of the page as a markdown string.
     """
     return _client.fetch(url)
+
+
+@mcp.tool(
+    name="uos_people_search",
+    description=(
+        "Search for people employed at the Osnabrück University. "
+        "Returns a list of matches with names and detail URLs. "
+        "Pass a details_url to uos_person_details to get full contact information."
+    ),
+)
+def uos_people_search(
+    query: Annotated[str, Field(description="Name or partial name to search for.")],
+) -> PersonSearchResults:
+    return _client.people_search(query)
+
+
+@mcp.tool(
+    name="uos_person_details",
+    description=(
+        "Fetch full contact details for a person at the Osnabrück University. "
+        "Pass the details_url returned by uos_people_search."
+    ),
+)
+def uos_person_details(
+    url: Annotated[str, Field(
+        description=(
+            "The details_url from a uos_people_search result. "
+            "Must start with https://www.uni-osnabrueck.de/kontakt/personensuche/personendetails"
+        )
+    )],
+) -> PersonDetails:
+    return _client.people_details(url)

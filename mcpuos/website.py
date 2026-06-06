@@ -1,5 +1,5 @@
 """
-Website interaction module for the University of Osnabrück.
+Website interaction module for the Osnabrück University.
 
 This module provides the UOSWebsiteClient class for logging in, searching,
 and fetching content from the university's website.
@@ -15,12 +15,12 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import urljoin, urlparse
 
-from mcpuos.models import SearchResult, SearchResults
+from mcpuos.models import SearchResult, SearchResults, PersonSearchResult, PersonSearchResults, PersonDetails
 
 
 class UOSWebsiteClient:
     """
-    A client for interacting with the University of Osnabrück website.
+    A client for interacting with the Osnabrück University website.
 
     This class provides methods for logging in, performing searches, and
     fetching content from the university's website.
@@ -304,6 +304,132 @@ class UOSWebsiteClient:
             tmp.write(pdf_content)
             tmp_path = tmp.name
             return to_markdown(tmp_path)
+
+    PEOPLE_SEARCH_URL = "/kontakt/personensuche"
+    PEOPLE_DETAILS_PREFIX = "https://www.uni-osnabrueck.de/kontakt/personensuche/personendetails"
+
+    def people_search(self, query: str) -> PersonSearchResults:
+        """
+        Search for people employed at the Osnabrück University.
+
+        Args:
+            query: Name or partial name to search for.
+
+        Returns:
+            A PersonSearchResults object with matching people and their detail URLs.
+        """
+        response = self.session.post(
+            self.base_url + self.PEOPLE_SEARCH_URL,
+            data={"command": "search_key", "search_key": query, "search": "Suche starten"},
+        )
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        results = []
+
+        results_box = soup.select_one("div.box.extern")
+        if results_box:
+            for link in results_box.select(".linkliste ul li a"):
+                name = link.get_text(strip=True)
+                href = urljoin(self.base_url, str(link.get("href", "")))
+                results.append(PersonSearchResult(name=name, details_url=href))
+
+        total_count = len(results)
+        count_p = results_box.find("p") if results_box else None
+        if count_p:
+            # "Einträge 1 bis 25 von 42" or "Einträge 1 bis 3"
+            import re
+            m = re.search(r"von\s+(\d+)", count_p.get_text())
+            if m:
+                total_count = int(m.group(1))
+
+        return PersonSearchResults(results=results, query=query, total_count=total_count)
+
+    def people_details(self, url: str) -> PersonDetails:
+        """
+        Fetch full contact details for a single person.
+
+        Args:
+            url: The details_url from a PersonSearchResult. Must start with
+                 https://www.uni-osnabrueck.de/kontakt/personensuche/personendetails
+
+        Returns:
+            A PersonDetails object with all available contact fields.
+
+        Raises:
+            ValueError: If the URL does not point to the person details endpoint.
+        """
+        if not url.startswith(self.PEOPLE_DETAILS_PREFIX):
+            raise ValueError(
+                f"Invalid URL. Must start with {self.PEOPLE_DETAILS_PREFIX}"
+            )
+
+        response = self.session.get(url)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        box = soup.select_one("div.box.extern")
+        if not box:
+            raise ValueError("Person details block not found in response")
+
+        name = box.find("h4").get_text(strip=True) if box.find("h4") else ""
+
+        paragraphs = box.find_all("p")
+
+        # First <p>: department lines then street + city (separated by <br>)
+        department = None
+        address = None
+        if paragraphs:
+            lines = [s.strip() for s in paragraphs[0].strings if s.strip()]
+            if len(lines) >= 2:
+                department = lines[0]
+                address = ", ".join(lines[1:])
+            elif lines:
+                department = lines[0]
+
+        # Second <p>: optional room, phone, fax, email — detected by label text.
+        # Phone is inside an <abbr> tag so we handle it separately.
+        room = phone = fax = email = None
+        if len(paragraphs) > 1:
+            import re
+            p2 = paragraphs[1]
+
+            # Phone: <abbr title="Telefon">Tel.</abbr>: <number>
+            abbr = p2.find("abbr", title="Telefon")
+            if abbr and abbr.next_sibling:
+                phone = str(abbr.next_sibling).lstrip(":").strip()
+
+            block_text = p2.get_text(separator="\n")
+            for line in block_text.splitlines():
+                line = line.strip()
+                if line.startswith("Raum:"):
+                    room = line.removeprefix("Raum:").strip()
+                elif line.startswith("Fax:"):
+                    fax = line.removeprefix("Fax:").strip()
+
+            mail_tag = p2.find("a", class_="mail")
+            if mail_tag:
+                email = mail_tag.get_text(strip=True)
+
+        # Remaining <p> blocks: look for a plain hyperlink as website
+        website = None
+        for p in paragraphs[2:]:
+            link = p.find("a")
+            if link and not link.get("class"):
+                website = link.get("href") or link.get_text(strip=True)
+                break
+
+        return PersonDetails(
+            name=name,
+            department=department,
+            address=address,
+            room=room,
+            phone=phone,
+            fax=fax,
+            email=email,
+            website=website,
+            source_url=url,
+        )
 
     def fetch(self, url):
         """
