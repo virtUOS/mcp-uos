@@ -34,26 +34,33 @@ def scrape_all_people(client, delay):
 
     Returns a list of dicts (PersonDetails.model_dump()); a failure on any
     single person's detail page is logged and skipped rather than aborting
-    the whole run.
+    the whole run. Progress within each letter is logged after every
+    person as "<letter>: i/N people details fetched" (i advances on a
+    skipped/failed fetch too, so the counter always reaches N by the end
+    of the letter; skipped people are additionally logged on their own
+    line).
     """
     people = []
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
         stubs = client.list_people_by_letter(letter, delay=delay)
-        _log(f"{letter}: {len(stubs)} people")
+        total = len(stubs)
+        width = len(str(total))
+        _log(f"{letter}: {total} people found")
 
-        for stub in stubs:
+        for i, stub in enumerate(stubs, start=1):
+            fetched = True
             try:
                 details = client.people_details(stub.details_url)
             except Exception as exc:
+                fetched = False
                 _log(f"  skipped {stub.details_url}: {exc}")
-                continue
+            else:
+                people.append(details.model_dump())
 
-            people.append(details.model_dump())
-            if len(people) % 100 == 0:
-                _log(f"  ... {len(people)} people fetched so far")
+            _log(f"{letter}: {i:>{width}}/{total} people details fetched")
 
-            if delay:
+            if fetched and delay:
                 time.sleep(delay)
 
     return people
