@@ -353,6 +353,81 @@ class UOSWebsiteClient:
 
         return PersonSearchResults(results=results, query=query, total_count=total_count)
 
+    def list_people_by_letter(self, letter: str, delay: float = 0.0) -> list[PersonSearchResult]:
+        """
+        List all people whose surname starts with the given letter.
+
+        Follows pagination to the end by repeatedly clicking the "»" (next)
+        link found in the result box, which avoids having to reconstruct the
+        site's own `page`/`cHash` query parameters.
+
+        Args:
+            letter: A single letter, e.g. "A".
+            delay: Seconds to sleep between page fetches (be polite to the server).
+
+        Returns:
+            A list of PersonSearchResult objects, one per person found.
+        """
+        results = []
+        url = self.base_url + self.PEOPLE_SEARCH_URL
+        params = {"command": "starting_with", "search_key": letter}
+
+        while True:
+            response = self.session.get(url, params=params)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            results_box = soup.select_one("div.box.extern")
+            if not results_box:
+                break
+
+            for link in results_box.select(".linkliste ul li a"):
+                name = link.get_text(strip=True)
+                href = urljoin(self.base_url, str(link.get("href", "")))
+                results.append(PersonSearchResult(name=name, details_url=href))
+
+            next_link = None
+            for a in results_box.find_all("a"):
+                if a.get_text(strip=True) in (">>", "»"):
+                    next_link = a
+                    break
+
+            if not next_link or not next_link.get("href"):
+                break
+
+            url = urljoin(self.base_url, str(next_link["href"]))
+            params = None
+
+            if delay:
+                time.sleep(delay)
+
+        return results
+
+    def list_all_people(self, delay: float = 0.0) -> list[PersonSearchResult]:
+        """
+        List all people in the Personensuche directory, A to Z.
+
+        Args:
+            delay: Seconds to sleep between HTTP requests (be polite to the server).
+
+        Returns:
+            A de-duplicated list of PersonSearchResult objects (by details_url).
+        """
+        seen = set()
+        results = []
+
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            for person in self.list_people_by_letter(letter, delay=delay):
+                if person.details_url in seen:
+                    continue
+                seen.add(person.details_url)
+                results.append(person)
+
+            if delay:
+                time.sleep(delay)
+
+        return results
+
     def people_details(self, url: str) -> PersonDetails:
         """
         Fetch full contact details for a single person.

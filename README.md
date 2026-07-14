@@ -103,6 +103,37 @@ The server exposes four tools:
 | `uos_people_search`   | Search for people employed at the university by name              |
 | `uos_person_details`  | Fetch full contact details for a person using their details URL   |
 
+## Scraping the People Directory
+
+The Personensuche only supports on-demand name search, which isn't suitable for building a full
+directory. `mcp-uos-scrape-people` walks the public A-Z listing instead, fetches full contact details
+for every person, and writes the result to a JSON file:
+
+```bash
+mcp-uos-scrape-people
+```
+
+The endpoints scraped here (the alphabetical listing and person detail pages) are public, so no
+credentials are required. The output file has the shape:
+
+```json
+{
+  "scraped_at": "2026-07-14T12:00:00+00:00",
+  "count": 5000,
+  "people": [
+    { "name": "...", "department": "...", "address": "...", "room": "...",
+      "phone": "...", "fax": "...", "email": "...", "website": "...", "source_url": "..." }
+  ]
+}
+```
+
+This script has no built-in scheduler; run it periodically via an external cron job or systemd timer,
+e.g.:
+
+```
+0 3 * * * /path/to/venv/bin/mcp-uos-scrape-people >> /var/log/mcp-uos-scrape.log 2>&1
+```
+
 ## Running the Test Script
 
 To run the test script that demonstrates all functionality:
@@ -123,13 +154,15 @@ The package can be configured using environment variables. You can either set th
 
 ### Environment Variables
 
-| Variable               | Description                                        | Default                   |
-|------------------------|----------------------------------------------------|---------------------------|
-| `UOS_MCP_USERNAME`     | Username of UOS account                            | `None` (required)         |
-| `UOS_MCP_PASSWORD`     | Password of UOS account                            | `None` (required)         |
-| `UOS_MCP_SKIP_LOGIN`   | Skip authentication (public content only)          | `false`                   |
-| `UOS_MCP_SERVER_HOST`  | Host for HTTP transport                            | `127.0.0.1`               |
-| `UOS_MCP_SERVER_PORT`  | Port for HTTP transport                            | `None` (enables HTTP mode)|
+| Variable                        | Description                                        | Default                    |
+|----------------------------------|----------------------------------------------------|----------------------------|
+| `UOS_MCP_USERNAME`               | Username of UOS account                            | `None` (required)          |
+| `UOS_MCP_PASSWORD`               | Password of UOS account                            | `None` (required)          |
+| `UOS_MCP_SKIP_LOGIN`             | Skip authentication (public content only)          | `false`                    |
+| `UOS_MCP_SERVER_HOST`            | Host for HTTP transport                            | `127.0.0.1`                |
+| `UOS_MCP_SERVER_PORT`            | Port for HTTP transport                            | `None` (enables HTTP mode) |
+| `UOS_MCP_PEOPLE_DATA_PATH`       | Output path for `mcp-uos-scrape-people`            | `./data/people.json`       |
+| `UOS_MCP_SCRAPE_DELAY_SECONDS`   | Delay between requests in `mcp-uos-scrape-people`  | `0.3`                      |
 
 ### Using a .env File
 

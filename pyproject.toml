@@ -49,3 +49,4 @@ filterwarnings = [
 
 [project.scripts]
 mcp-uos = "mcpuos.__main__:main"
+mcp-uos-scrape-people = "mcpuos.scrape_people:main"
