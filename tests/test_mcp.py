@@ -13,7 +13,6 @@ Requires:  UOS_MCP_USERNAME and UOS_MCP_PASSWORD (env vars or .env file)
 """
 
 import asyncio
-import json
 import os
 import sys
 
@@ -21,8 +20,6 @@ import pytest
 from dotenv import load_dotenv
 from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
-
-from mcpuos.models import PersonDetails
 
 load_dotenv()
 
@@ -51,24 +48,6 @@ def requires_auth():
     skip_login = os.getenv("UOS_MCP_SKIP_LOGIN", "").lower() in ("1", "true", "yes")
     if not skip_login and (not os.getenv("UOS_MCP_USERNAME") or not os.getenv("UOS_MCP_PASSWORD")):
         pytest.skip("UOS_MCP_USERNAME and UOS_MCP_PASSWORD env vars required")
-
-
-@pytest.fixture(scope="session")
-def people_fixture_path(tmp_path_factory):
-    path = tmp_path_factory.mktemp("people-data") / "people.json"
-    people = [
-        PersonDetails(
-            name="Kiesow, Lars, M. Sc.",
-            department="virtUOS",
-            email="lkiesow@uos.de",
-        ).model_dump(),
-        PersonDetails(name="Anna Schmidt", department="Physik").model_dump(),
-    ]
-    path.write_text(
-        json.dumps({"scraped_at": "2026-01-01T00:00:00+00:00", "count": len(people), "people": people}),
-        encoding="utf-8",
-    )
-    return path
 
 
 @pytest.fixture(scope="session")

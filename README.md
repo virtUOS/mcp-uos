@@ -137,6 +137,14 @@ e.g.:
 0 3 * * * /path/to/venv/bin/mcp-uos-scrape-people >> /var/log/mcp-uos-scrape.log 2>&1
 ```
 
+Note: the package currently loads the people snapshot at import time, so on a fresh
+install `mcp-uos-scrape-people` itself will not start while the data file is missing.
+Create an empty stub once before the first scrape:
+
+```bash
+mkdir -p data && echo '{"people": []}' > data/people.json
+```
+
 ## People Search
 
 `uos_people_search` always answers from the JSON file written by

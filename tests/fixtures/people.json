@@ -1,0 +1,28 @@
+{
+  "scraped_at": "2026-01-01T00:00:00+00:00",
+  "count": 2,
+  "people": [
+    {
+      "name": "Kiesow, Lars, M. Sc.",
+      "department": "virtUOS",
+      "address": "Heger-Tor-Wall 12, 49069 Osnabrück",
+      "room": "42/E42",
+      "phone": "+49 541 969-0000",
+      "fax": null,
+      "email": "lkiesow@uos.de",
+      "website": null,
+      "source_url": null
+    },
+    {
+      "name": "Schmidt, Anna",
+      "department": "Fachbereich Physik",
+      "address": "Barbarastraße 7, 49076 Osnabrück",
+      "room": null,
+      "phone": null,
+      "fax": null,
+      "email": null,
+      "website": null,
+      "source_url": null
+    }
+  ]
+}
