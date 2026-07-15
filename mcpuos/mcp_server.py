@@ -70,16 +70,20 @@ def uos_search(
 
 @mcp.tool(
     name="uos_fetch",
-    description="Fetch page content from a URL and return it as markdown.",
+    description=(
+        "Fetch page content from a URL on the Osnabrück University website "
+        "and return it as markdown. Only university URLs are allowed."
+    ),
 )
 def uos_fetch(
-    url: Annotated[str, Field(description="The URL to fetch (can be relative or absolute).")],
+    url: Annotated[str, Field(description="The URL to fetch (can be relative or absolute). Must be on the university website (uni-osnabrueck.de).")],
 ) -> Annotated[str, Field(description="The main content of the page as a markdown string.")]:
     """
     Fetch page content from a URL and return it as markdown.
 
     Args:
-        url: The URL to fetch (can be relative or absolute).
+        url: The URL to fetch (can be relative or absolute). Must be on the
+             university website (uni-osnabrueck.de or a subdomain).
 
     Returns:
         The main content of the page as a markdown string.
