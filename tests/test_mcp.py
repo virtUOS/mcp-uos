@@ -2,15 +2,19 @@
 """Integration tests for the UOS MCP server.
 
 Launches the server as a subprocess via stdio transport and exercises all
-four tools end-to-end. A single MCP connection and event loop is shared
-across the entire test session.
+three tools end-to-end, using a small fixture people-data JSON file so
+uos_people_search needs no live network access. A single MCP connection and
+event loop is shared across the entire test session.
 
 Run with:  pytest tests/test_mcp.py
        or: pytest tests/test_mcp.py -s   (to see per-test detail output)
 Requires:  UOS_MCP_USERNAME and UOS_MCP_PASSWORD (env vars or .env file)
+           for the uos_search/uos_fetch tests.
 """
 
 import asyncio
+import json
+import os
 import sys
 
 import pytest
@@ -18,9 +22,11 @@ from dotenv import load_dotenv
 from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
 
+from mcpuos.models import PersonDetails
+
 load_dotenv()
 
-EXPECTED_TOOLS = {"uos_search", "uos_fetch", "uos_people_search", "uos_person_details"}
+EXPECTED_TOOLS = {"uos_search", "uos_fetch", "uos_people_search"}
 
 
 class _MCP:
@@ -42,17 +48,34 @@ class _MCP:
 
 @pytest.fixture(scope="session")
 def requires_auth():
-    import os
-
     skip_login = os.getenv("UOS_MCP_SKIP_LOGIN", "").lower() in ("1", "true", "yes")
     if not skip_login and (not os.getenv("UOS_MCP_USERNAME") or not os.getenv("UOS_MCP_PASSWORD")):
         pytest.skip("UOS_MCP_USERNAME and UOS_MCP_PASSWORD env vars required")
 
 
 @pytest.fixture(scope="session")
-def mcp():
+def people_fixture_path(tmp_path_factory):
+    path = tmp_path_factory.mktemp("people-data") / "people.json"
+    people = [
+        PersonDetails(
+            name="Kiesow, Lars, M. Sc.",
+            department="virtUOS",
+            email="lkiesow@uos.de",
+        ).model_dump(),
+        PersonDetails(name="Anna Schmidt", department="Physik").model_dump(),
+    ]
+    path.write_text(
+        json.dumps({"scraped_at": "2026-01-01T00:00:00+00:00", "count": len(people), "people": people}),
+        encoding="utf-8",
+    )
+    return path
+
+
+@pytest.fixture(scope="session")
+def mcp(people_fixture_path):
     loop = asyncio.new_event_loop()
-    transport = StdioTransport(command=sys.executable, args=["-m", "mcpuos"])
+    env = {**os.environ, "UOS_MCP_PEOPLE_DATA_PATH": str(people_fixture_path)}
+    transport = StdioTransport(command=sys.executable, args=["-m", "mcpuos"], env=env)
     client = Client(transport)
 
     loop.run_until_complete(client.__aenter__())
@@ -96,22 +119,8 @@ def test_uos_people_search(mcp):
     result = mcp.call_tool("uos_people_search", {"query": "Kiesow"})
     data = result.structured_content
     print(f"\n  {data['total_count']} people matching 'Kiesow'")
-    for r in data["results"]:
-        print(f"  - {r['name']}")
-    assert data["total_count"] > 0
+    assert data["total_count"] == 1
     first = data["results"][0]
     assert "Kiesow" in first["name"]
-    assert first["details_url"].startswith("https://")
-
-
-def test_uos_person_details(mcp):
-    search = mcp.call_tool("uos_people_search", {"query": "Kiesow"})
-    url = search.structured_content["results"][0]["details_url"]
-
-    result = mcp.call_tool("uos_person_details", {"url": url})
-    details = result.structured_content
-    print(f"\n  Name:    {details.get('name')}")
-    print(f"  Dept:    {details.get('department')}")
-    print(f"  Email:   {details.get('email')}")
-    print(f"  Phone:   {details.get('phone')}")
-    assert "Kiesow" in details["name"]
+    assert first["department"] == "virtUOS"
+    assert first["email"] == "lkiesow@uos.de"

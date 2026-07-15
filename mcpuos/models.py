@@ -41,16 +41,9 @@ class SearchResults(BaseModel):
 
 
 class PersonSearchResult(BaseModel):
-    """Represents a single result from a people search."""
+    """Represents a single result from a people search (used internally while scraping)."""
     name: Annotated[str, Field(description="Full name with academic title, e.g. 'Kiesow, Lars, M. Sc.'")]
-    details_url: Annotated[str, Field(description="URL to fetch full contact details via uos_person_details")]
-
-
-class PersonSearchResults(BaseModel):
-    """Container for people search results."""
-    results: Annotated[list[PersonSearchResult], Field(description="List of matching people")]
-    query: Annotated[str, Field(description="The search query that was performed")] = ""
-    total_count: Annotated[int, Field(description="Total number of results found")] = 0
+    details_url: Annotated[str, Field(description="URL of the person's full details page")]
 
 
 class PersonDetails(BaseModel):
@@ -64,3 +57,10 @@ class PersonDetails(BaseModel):
     email: Annotated[str | None, Field(description="Email address")] = None
     website: Annotated[str | None, Field(description="Personal or group website URL")] = None
     source_url: Annotated[str | None, Field(description="URL of the page these details were retrieved from")] = None
+
+
+class PersonDetailsResults(BaseModel):
+    """Container for people search results with full contact details inline."""
+    results: Annotated[list[PersonDetails], Field(description="List of matching people with full contact details")]
+    query: Annotated[str, Field(description="The search query that was performed")] = ""
+    total_count: Annotated[int, Field(description="Total number of results found")] = 0

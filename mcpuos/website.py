@@ -6,7 +6,6 @@ and fetching content from the university's website.
 """
 
 import os
-import re
 import time
 import requests
 import tempfile
@@ -16,7 +15,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import urljoin, urlparse
 
-from mcpuos.models import SearchResult, SearchResults, PersonSearchResult, PersonSearchResults, PersonDetails
+from mcpuos.models import SearchResult, SearchResults, PersonSearchResult, PersonDetails
 
 
 class UOSWebsiteClient:
@@ -316,42 +315,6 @@ class UOSWebsiteClient:
 
     PEOPLE_SEARCH_URL = "/kontakt/personensuche"
     PEOPLE_DETAILS_PREFIX = "https://www.uni-osnabrueck.de/kontakt/personensuche/personendetails"
-
-    def people_search(self, query: str) -> PersonSearchResults:
-        """
-        Search for people employed at the Osnabrück University.
-
-        Args:
-            query: Name or partial name to search for.
-
-        Returns:
-            A PersonSearchResults object with matching people and their detail URLs.
-        """
-        response = self.session.post(
-            self.base_url + self.PEOPLE_SEARCH_URL,
-            data={"command": "search_key", "search_key": query, "search": "Suche starten"},
-        )
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, "html.parser")
-        results = []
-
-        results_box = soup.select_one("div.box.extern")
-        if results_box:
-            for link in results_box.select(".linkliste ul li a"):
-                name = link.get_text(strip=True)
-                href = urljoin(self.base_url, str(link.get("href", "")))
-                results.append(PersonSearchResult(name=name, details_url=href))
-
-        total_count = len(results)
-        count_p = results_box.find("p") if results_box else None
-        if count_p:
-            # "Einträge 1 bis 25 von 42" or "Einträge 1 bis 3"
-            m = re.search(r"von\s+(\d+)", count_p.get_text())
-            if m:
-                total_count = int(m.group(1))
-
-        return PersonSearchResults(results=results, query=query, total_count=total_count)
 
     def list_people_by_letter(self, letter: str, delay: float = 0.0) -> list[PersonSearchResult]:
         """
