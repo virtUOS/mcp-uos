@@ -106,6 +106,41 @@ The server exposes three tools:
 [People Search](#people-search) below) rather than querying the live
 website.
 
+## Running with Docker
+
+Prebuilt images are published to `ghcr.io/virtuos/mcp-uos` (the commands below also work
+with Podman). The image starts the MCP server on HTTP transport, listening on port 8000.
+
+The server refuses to start without the pre-scraped people snapshot (see
+[People Search](#people-search)), so mount a data directory into the container at
+`/app/data` and bootstrap it once:
+
+```bash
+# 1. One-time bootstrap: the scraper itself needs the data file to exist
+#    before it can start (the package loads it at import time).
+mkdir -p data && echo '{"people": []}' > data/people.json
+
+# 2. Build a real snapshot (public endpoints, no credentials required).
+docker run --rm -v "$(pwd)/data:/app/data" ghcr.io/virtuos/mcp-uos mcp-uos-scrape-people
+
+# 3. Start the MCP server.
+docker run -d --name mcp-uos -p 8000:8000 -v "$(pwd)/data:/app/data" \
+    -e UOS_MCP_USERNAME="your_username" -e UOS_MCP_PASSWORD="your_password" \
+    ghcr.io/virtuos/mcp-uos
+```
+
+The server is then available at `http://127.0.0.1:8000/mcp`. Instead of passing
+credentials, you can use `-e UOS_MCP_SKIP_LOGIN=true` for public content only, or pass
+a prepared environment file with `--env-file .env`. On SELinux systems (e.g. Fedora
+with Podman), append `:z` to the volume mounts (`-v "$(pwd)/data:/app/data:z"`).
+
+To pick up a fresh snapshot, re-run step 2 periodically (e.g. from cron) and tell the
+running server to reload the file without a restart:
+
+```bash
+docker kill --signal=HUP mcp-uos
+```
+
 ## Scraping the People Directory
 
 The Personensuche only supports on-demand name search, which isn't suitable for building a full
