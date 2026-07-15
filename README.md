@@ -99,7 +99,7 @@ The server exposes three tools:
 | Tool                  | Description                                                       |
 |-----------------------|-------------------------------------------------------------------|
 | `uos_search`          | Search the Osnabrück University website for content               |
-| `uos_fetch`           | Fetch page content from a URL and return it as markdown           |
+| `uos_fetch`           | Fetch a university page as markdown (university URLs only)        |
 | `uos_people_search`   | Search for people by name; returns full contact details inline    |
 
 `uos_people_search` answers from a local pre-scraped snapshot (see

@@ -274,11 +274,23 @@ class UOSWebsiteClient:
             A tuple of (content, content_type).
             - content: The page content as string (for HTML) or bytes (for PDF)
             - content_type: The content-type header value
+
+        Raises:
+            ValueError: If the URL is malformed or not on the university website.
         """
         if url.startswith('/'):
             url = self.base_url + url
         elif not url.startswith('http://') and not url.startswith('https://'):
             raise ValueError(f"URL must be absolute path or URL: {url}")
+
+        # Only fetch pages from the university website (the base_url host
+        # and its subdomains); the session may carry an authenticated cookie
+        # and the MCP tool is scoped to university content.
+        host = urlparse(url).hostname or ''
+        base_host = urlparse(self.base_url).hostname or ''
+        domain = base_host.removeprefix('www.')
+        if host not in (base_host, domain) and not host.endswith('.' + domain):
+            raise ValueError(f"URL is not on the university website ({domain}): {url}")
 
         response = self.session.get(url)
         response.raise_for_status()
