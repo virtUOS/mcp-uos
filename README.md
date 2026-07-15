@@ -13,7 +13,13 @@ The `mcpuos` package provides functionality for:
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+pip install .
+```
+
+For development (editable install including test dependencies):
+
+```bash
+pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -247,10 +253,10 @@ mcp-uos/
 │   └── search_and_fetch.py
 ├── .env.sample         # Environment variable template
 ├── .gitignore
-├── requirements.txt
+├── pyproject.toml
 └── README.md
 ```
 
 ## Requirements
 
-See [`requirements.txt`](requirements.txt) for the list of dependencies.
+See the `dependencies` section in [`pyproject.toml`](pyproject.toml) for the list of dependencies.
