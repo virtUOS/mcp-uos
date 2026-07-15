@@ -58,11 +58,14 @@ class UOSWebsiteClient:
         Perform login and establish a session.
 
         Returns:
-            True if login was successful, False otherwise.
+            True if login was successful.
+
+        Raises:
+            RuntimeError: If the website rejects the login (e.g. wrong credentials).
         """
-        # Fetch login page
-        response = requests.get(f"{self.base_url}/loginlogout",
-                                headers=self.DEFAULT_HEADERS)
+        # Fetch login page with the session: TYPO3 validates the form's
+        # __RequestToken against a nonce cookie set by this request.
+        response = self.session.get(f"{self.base_url}/loginlogout")
         response.raise_for_status()
         html_content = response.text
 
@@ -83,6 +86,15 @@ class UOSWebsiteClient:
         response = self.session.post(full_url, data=form_data)
         response.raise_for_status()
 
+        # On failure TYPO3 re-renders the login form; on success it shows
+        # the logout view, which has no user/pass inputs.
+        soup = BeautifulSoup(response.text, 'html.parser')
+        if self._find_login_form(soup) is not None:
+            raise RuntimeError(
+                "Login failed: the website returned the login form again "
+                "(wrong username or password?)"
+            )
+
         self._last_login = time.time()
         return True
 
@@ -97,6 +109,24 @@ class UOSWebsiteClient:
             return
         if time.time() - self._last_login > (23 * 60 * 60):
             self.login()
+
+    @staticmethod
+    def _find_login_form(soup):
+        """
+        Find the login form (a form with both `user` and `pass` inputs).
+
+        Args:
+            soup: A BeautifulSoup document.
+
+        Returns:
+            The form tag, or None if no login form is present.
+        """
+        for f in soup.find_all('form'):
+            has_user = f.find('input', {'name': 'user'})
+            has_pass = f.find('input', {'name': 'pass'})
+            if has_user and has_pass:
+                return f
+        return None
 
     def _extract_form_fields(self, html_content):
         """
@@ -113,14 +143,7 @@ class UOSWebsiteClient:
         """
         soup = BeautifulSoup(html_content, 'html.parser')
 
-        form = None
-        for f in soup.find_all('form'):
-            has_user = f.find('input', {'name': 'user'})
-            has_pass = f.find('input', {'name': 'pass'})
-            if has_user and has_pass:
-                form = f
-                break
-
+        form = self._find_login_form(soup)
         if not form:
             raise ValueError("No login form found in HTML")
 
