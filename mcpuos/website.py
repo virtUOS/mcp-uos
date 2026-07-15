@@ -310,8 +310,10 @@ class UOSWebsiteClient:
         """
         with tempfile.NamedTemporaryFile(suffix='.pdf') as tmp:
             tmp.write(pdf_content)
-            tmp_path = tmp.name
-            return to_markdown(tmp_path)
+            # Flush so to_markdown sees the full file; small writes otherwise
+            # stay in the userspace buffer until the file is closed.
+            tmp.flush()
+            return to_markdown(tmp.name)
 
     PEOPLE_SEARCH_URL = "/kontakt/personensuche"
     PEOPLE_DETAILS_PREFIX = "https://www.uni-osnabrueck.de/kontakt/personensuche/personendetails"
