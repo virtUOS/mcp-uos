@@ -94,14 +94,17 @@ The server will be available at `http://127.0.0.1:8000/mcp`.
 
 ### MCP Tools
 
-The server exposes four tools:
+The server exposes three tools:
 
 | Tool                  | Description                                                       |
 |-----------------------|-------------------------------------------------------------------|
 | `uos_search`          | Search the Osnabrück University website for content               |
 | `uos_fetch`           | Fetch page content from a URL and return it as markdown           |
-| `uos_people_search`   | Search for people employed at the university by name              |
-| `uos_person_details`  | Fetch full contact details for a person using their details URL   |
+| `uos_people_search`   | Search for people by name; returns full contact details inline    |
+
+`uos_people_search` answers from a local pre-scraped snapshot (see
+[People Search](#people-search) below) rather than querying the live
+website.
 
 ## Scraping the People Directory
 
@@ -134,6 +137,20 @@ e.g.:
 0 3 * * * /path/to/venv/bin/mcp-uos-scrape-people >> /var/log/mcp-uos-scrape.log 2>&1
 ```
 
+## People Search
+
+`uos_people_search` always answers from the JSON file written by
+`mcp-uos-scrape-people` (path taken from `UOS_MCP_PEOPLE_DATA_PATH`) rather
+than querying the live website, and returns full contact details inline
+for every match (case-insensitive substring match against the name).
+
+The data file is loaded once at startup; a missing or unreadable file is a
+fatal startup error — the server won't run without a scraped snapshot in
+place. To pick up a fresh scrape without restarting the server, send it
+`SIGHUP` (e.g. `kill -HUP <pid>`) — this reloads the JSON file in place. If
+the reload fails (file missing or corrupt at reload time), the server logs
+the error and keeps serving the previously loaded data.
+
 ## Running the Test Script
 
 To run the test script that demonstrates all functionality:
@@ -161,7 +178,7 @@ The package can be configured using environment variables. You can either set th
 | `UOS_MCP_SKIP_LOGIN`             | Skip authentication (public content only)          | `false`                    |
 | `UOS_MCP_SERVER_HOST`            | Host for HTTP transport                            | `127.0.0.1`                |
 | `UOS_MCP_SERVER_PORT`            | Port for HTTP transport                            | `None` (enables HTTP mode) |
-| `UOS_MCP_PEOPLE_DATA_PATH`       | Output path for `mcp-uos-scrape-people`            | `./data/people.json`       |
+| `UOS_MCP_PEOPLE_DATA_PATH`       | Data file for `uos_people_search` and the scraper  | `./data/people.json`       |
 | `UOS_MCP_SCRAPE_DELAY_SECONDS`   | Delay between requests in `mcp-uos-scrape-people`  | `0.3`                      |
 
 ### Using a .env File
@@ -180,6 +197,7 @@ mcp-uos/
 ├── mcpuos/              # Package directory
 │   ├── __init__.py     # Package initializer
 │   ├── website.py      # Core functionality (UOSWebsiteClient)
+│   ├── people_data.py  # PeopleDataStore for scrape mode
 │   ├── mcp_server.py   # MCP server implementation
 │   └── __main__.py     # MCP server entry point
 ├── tests/              # Test scripts (outside package)
