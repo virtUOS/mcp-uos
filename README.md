@@ -220,15 +220,16 @@ The package can be configured using environment variables. You can either set th
 
 ### Environment Variables
 
-| Variable                        | Description                                        | Default                    |
-|----------------------------------|----------------------------------------------------|----------------------------|
-| `UOS_MCP_USERNAME`               | Username of UOS account                            | `None` (required)          |
-| `UOS_MCP_PASSWORD`               | Password of UOS account                            | `None` (required)          |
-| `UOS_MCP_SKIP_LOGIN`             | Skip authentication (public content only)          | `false`                    |
-| `UOS_MCP_SERVER_HOST`            | Host for HTTP transport                            | `127.0.0.1`                |
-| `UOS_MCP_SERVER_PORT`            | Port for HTTP transport                            | `None` (enables HTTP mode) |
-| `UOS_MCP_PEOPLE_DATA_PATH`       | Data file for `uos_people_search` and the scraper  | `./data/people.json`       |
-| `UOS_MCP_SCRAPE_DELAY_SECONDS`   | Delay between requests in `mcp-uos-scrape-people`  | `0.3`                      |
+| Variable                         | Description                                        | Default                       |
+|----------------------------------|----------------------------------------------------|-------------------------------|
+| `UOS_MCP_USERNAME`               | Username of UOS account                            | `None` (required)             |
+| `UOS_MCP_PASSWORD`               | Password of UOS account                            | `None` (required)             |
+| `UOS_MCP_SKIP_LOGIN`             | Skip authentication (public content only)          | `false`                       |
+| `UOS_MCP_USER_AGENT`             | User-Agent header sent to the university website   | Mozilla/5.0 (Windows) string  |
+| `UOS_MCP_SERVER_HOST`            | Host for HTTP transport                            | `127.0.0.1`                   |
+| `UOS_MCP_SERVER_PORT`            | Port for HTTP transport                            | `None` (enables HTTP mode)    |
+| `UOS_MCP_PEOPLE_DATA_PATH`       | Data file for `uos_people_search` and the scraper  | `./data/people.json`          |
+| `UOS_MCP_SCRAPE_DELAY_SECONDS`   | Delay between requests in `mcp-uos-scrape-people`  | `0.3`                         |
 
 ### Using a .env File
 

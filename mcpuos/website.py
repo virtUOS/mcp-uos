@@ -28,11 +28,9 @@ class UOSWebsiteClient:
 
     BASE_URL = "https://www.uni-osnabrueck.de"
 
-    DEFAULT_HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
+    DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
 
-    def __init__(self, username=None, password=None, base_url=None, skip_login=None):
+    def __init__(self, username=None, password=None, base_url=None, skip_login=None, user_agent=None):
         """
         Initialize the UOSWebsiteClient.
 
@@ -42,6 +40,8 @@ class UOSWebsiteClient:
             base_url: The base URL for the website. Defaults to BASE_URL.
             skip_login: If True, skip authentication entirely (public content only).
                         If None, reads from UOS_MCP_SKIP_LOGIN env var. Defaults to False.
+            user_agent: The User-Agent header sent with requests. If None, reads from
+                        UOS_MCP_USER_AGENT env var. Defaults to DEFAULT_USER_AGENT.
         """
         self.username = username or os.getenv("UOS_MCP_USERNAME")
         self.password = password or os.getenv("UOS_MCP_PASSWORD")
@@ -49,8 +49,9 @@ class UOSWebsiteClient:
         if skip_login is None:
             skip_login = os.getenv("UOS_MCP_SKIP_LOGIN", "").lower() in ("1", "true", "yes")
         self.skip_login = skip_login
+        self.user_agent = user_agent or os.getenv("UOS_MCP_USER_AGENT", self.DEFAULT_USER_AGENT)
         self.session = requests.Session()
-        self.session.headers.update(self.DEFAULT_HEADERS)
+        self.session.headers.update({'User-Agent': self.user_agent})
         self._last_login = 0
 
     def login(self):
